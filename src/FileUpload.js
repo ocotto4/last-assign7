@@ -1,41 +1,47 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
 class FileUpload extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      file: null,
-    };
-  }
+  state = {
+    file: null,
+  };
+
+  handleFileChange = (event) => {
+    this.setState({ file: event.target.files[0] });
+  };
 
   handleFileSubmit = (event) => {
     event.preventDefault();
     const { file } = this.state;
 
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target.result;
-        try {
-          const jsonData = JSON.parse(text);
-          this.props.setData(jsonData);
-        } catch (error) {
-          alert("Error parsing JSON file. Please make sure it's valid.");
-        }
-      };
-      reader.readAsText(file);
+    if (!file) {
+      alert("Please select a file before submitting.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = this.processFileContent;
+    reader.readAsText(file);
+  };
+
+  processFileContent = (e) => {
+    const { set_data } = this.props;
+    try {
+      const json = JSON.parse(e.target.result);
+      set_data(json); // Pass parsed JSON data to the parent component
+    } catch (error) {
+      alert("Invalid JSON file. Please upload a valid JSON file.");
     }
   };
 
   render() {
     return (
-      <div style={{ backgroundColor: "#f0f0f0", padding: 20 }}>
+      <div style={{ backgroundColor: "#f0f0f0", padding: "20px" }}>
         <h2>Upload a JSON File</h2>
         <form onSubmit={this.handleFileSubmit}>
           <input
             type="file"
             accept=".json"
-            onChange={(event) => this.setState({ file: event.target.files[0] })}
+            onChange={this.handleFileChange}
           />
           <button type="submit">Upload</button>
         </form>
